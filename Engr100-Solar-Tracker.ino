@@ -23,24 +23,32 @@ Description
 
 ##############################################################################*/
 
-// Establish constants, sensor and servo pins, and threshold values
+// Establish sensor pins, servo pins, and threshold values
+const int sensorWest = 0;           // The pin number for west photoresistor
+const int sensorEast = 1;           // The pin number for east photoresistor
+const int sensorNorth = 2;          // The pin number for north photoresistor
+const int sensorSouth = 3;          // The pin number for south photoresistor
+const int servoAnglePin = 4;        // The pin number for angle servo
+const int servoRotatePin = 5;       // The pin number for rotation servo
+const int lightErrorThreshold = 10; // The threshold for the light level error,
+//                                     below which the servo position will not
+//                                     change
 
-const int sensorLeft = 0;
-const int sensorRight = 1;
-const int sensorUp = 2;
-const int sensorDown = 3;
-
-// We'll also set up some global variables for the light level:
-int lightLevel = 0;
-int calibratedlightLevel; // used to store the scaled / calibrated lightLevel
-int maxThreshold = 0;     // used for setting the "max" light level
-int minThreshold = 1023;   // used for setting the "min" light level
-
+/* TODO: Currently the program uses raw light level error to determine
+actions, but it might be useful to have a conversion function so
+that actual irradiance values can be used */
 int Convert the raw input to a 10 bit scale ( raw) {
   
 }
 
-int main() {
+void setup() {
+  Serial.begin(9600);               // Open a serial port for remote instrument reading
+  pinMode(servoAnglePin, OUTPUT);   // Open angle servo output
+  pinMode(servoRotatePin, OUTPUT);  // Open rotation servo output
+  )
+
+}
+void loop() {
 
   // collect raw input from sensors
 
