@@ -1,3 +1,5 @@
+#include <Servo.h>
+
 /*##############################################################################
 
 Date
@@ -12,9 +14,6 @@ Written By
 Course
     Engr 100-435
 
-Libraries
-    [This section is a placeholder and should be updated]
-    
 Description
     This program drives two servo motors connected to an Arduino, in order to
     angle a solar panel towards a moving light source.
@@ -25,8 +24,6 @@ Description
                          W-+-E    -->    (-)-+-(+)
                            S                (-)
 
-
-
 ##############################################################################*/
 
 
@@ -35,12 +32,12 @@ const int sensorWestPin = 0;        // The pin number for west photoresistor
 const int sensorEastPin = 1;        // The pin number for east photoresistor
 const int sensorNorthPin = 2;       // The pin number for north photoresistor
 const int sensorSouthPin = 3;       // The pin number for south photoresistor
-const int servoNSPin = 4;           // The pin number for angle servo
-const int servoEWPin = 5;           // The pin number for rotation servo
-const int lightErrorThreshold = 10; // The threshold for the light level error,
-Servo servo
-//                                     below which the servo position will not
-//                                     change
+const int lightErrorThreshold = 10; // Threshold for the light level error, below which the servo position will not change
+const int servoNSPin = 4;           // The pin number for NS servo
+const int servoEWPin = 5;           // The pin number for EW servo
+const int servoMoveDist = 1;            // Distance in degrees a servo will move at a time
+Servo servoNS;                      // Servo object for North South servo
+Servo servoEW;                      // Servo object for East West servo
 
 
 /* TODO: Currently the program uses raw light level error to determine
@@ -54,16 +51,19 @@ int Convert the raw input to a 10 bit scale ( raw) {
 
 void setup() {
 
-  Serial.begin(9600);               // Open a serial port for remote instrument reading
-  pinMode(servoNWPin, OUTPUT);   // Open North West servo output
-  pinMode(servoEWPin, OUTPUT);  // Open East West servo output
+  // Open a serial port for remote instrument reading
+  Serial.begin(9600);
+
+  // Connect servo objects to their signal pins
+  servoNS.attach(servoNSPin);
+  servoEW.attach(servoEWPin);
 
 }
 
 void loop() {
 
-  // Calculate the error on each axis, which is the difference between the
-  // light levels on one axis
+  // Calculate the error on each axis, or the difference between the sensor
+  // light levels
   int lightErrorNS = analogRead(sensorSouthPin) - analogRead(sensorNorthPin);
   int lightErrorEW = analogRead(sensorWestPin) - analogRead(sensorEastPin);
 
@@ -75,10 +75,10 @@ void loop() {
   if ( abs(lightErrorEW) > lightErrorThreshold ) {
 
     if ( lightErrorEW > 0 ) {
-      // Move the servo to the East (positive direction)
+      servoEW.write(servoEW.read() - servoMoveDist);
     }
     else if ( lightErrorEW < 0 ) {
-      // Move the servo to the West (negative direction)
+      servoEW.write(servoEW.read() + servoMoveDist);
     }
 
   }
@@ -88,12 +88,16 @@ void loop() {
   if ( abs(lightErrorNS) > lightErrorThreshold ) {
 
     if ( lightErrorNS > 0 ) {
-      // Move the servo to the North (positive direction)
+      servoNS.write(servoNS.read() - servoMoveDist);
     }
     else if ( lightErrorNS < 0 ) {
-      // Move the servo to the South (negative direction)
+      servoNS.write(servoNS.read() + servoMoveDist);
     }
 
   }
- 
+
+
+  // Wait to ensure that the servo reaches its position
+  delay(20);
+
 }
