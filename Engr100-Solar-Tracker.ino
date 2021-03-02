@@ -18,7 +18,8 @@ Description
     This program drives two servo motors connected to an Arduino, in order to
     angle a solar panel towards a moving light source.
 
-    Sensors and rotational axes are aligned according to a cardinal directional system, with North and East being positive as such:
+    Sensors and rotational axes are aligned according to a cardinal directional
+    system, with North and East being positive as such:
 
                            N                (+)
                          W-+-E    -->    (-)-+-(+)
@@ -75,10 +76,12 @@ void loop() {
   if ( abs(lightErrorEW) > lightErrorThreshold ) {
 
     if ( lightErrorEW > 0 ) {
-      servoEW.write(servoEW.read() - servoMoveDist);
+      servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
+      Serial.print("clockwise\t");
     }
     else if ( lightErrorEW < 0 ) {
-      servoEW.write(servoEW.read() + servoMoveDist);
+      servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
+      Serial.print("counterclockwise\t");
     }
 
   }
@@ -88,10 +91,12 @@ void loop() {
   if ( abs(lightErrorNS) > lightErrorThreshold ) {
 
     if ( lightErrorNS > 0 ) {
-      servoNS.write(servoNS.read() - servoMoveDist);
+      servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
+      Serial.print("down\n");
     }
     else if ( lightErrorNS < 0 ) {
-      servoNS.write(servoNS.read() + servoMoveDist);
+      servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
+      Serial.print("up\n");
     }
 
   }
