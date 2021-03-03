@@ -33,21 +33,19 @@ const int sensorWestPin = 0;        // The pin number for west photoresistor
 const int sensorEastPin = 1;        // The pin number for east photoresistor
 const int sensorNorthPin = 2;       // The pin number for north photoresistor
 const int sensorSouthPin = 3;       // The pin number for south photoresistor
-const int lightErrorThreshold = 10; // Threshold for the light level error, below which the servo position will not change
-const int servoNSPin = 4;           // The pin number for NS servo
-const int servoEWPin = 5;           // The pin number for EW servo
-const int servoMoveDist = 1;            // Distance in degrees a servo will move at a time
+const int lightErrorThreshold = 100; // Threshold for the light level error, below which the servo position will not change
+const int servoNSPin = 5;           // The pin number for NS servo
+const int servoEWPin = 6;           // The pin number for EW servo
+const int servoMoveDist = 1;        // Distance in degrees a servo will move at a time
 Servo servoNS;                      // Servo object for North South servo
 Servo servoEW;                      // Servo object for East West servo
+const bool debugging = false;       // Set the debugging mode to true or false
 
 
 /* TODO: Currently the program uses raw light level error to determine
 actions, but it might be useful to have a conversion function so
 that actual irradiance values can be used
-int Convert the raw input to a 10 bit scale ( raw) {
-  
-}
-*/
+int Convert the raw input to a 10 bit scale ( raw) {}*/
 
 
 void setup() {
@@ -58,8 +56,11 @@ void setup() {
   // Connect servo objects to their signal pins
   servoNS.attach(servoNSPin);
   servoEW.attach(servoEWPin);
+  servoNS.write(90);
+  servoEW.write(90);
 
 }
+
 
 void loop() {
 
@@ -67,21 +68,29 @@ void loop() {
   // light levels
   int lightErrorNS = analogRead(sensorSouthPin) - analogRead(sensorNorthPin);
   int lightErrorEW = analogRead(sensorWestPin) - analogRead(sensorEastPin);
-
-
-  // Possible TODO: run conversion function to get standardized light level ???
-
+  
+  
+  // If debugging is enabled, print diagnostics
+  if (debugging) {
+    Serial.print(analogRead(sensorSouthPin) ); Serial.print("\t");
+    Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
+    Serial.print(lightErrorNS); Serial.print("\tNS\n");
+    Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
+    Serial.print(analogRead(sensorEastPin) ); Serial.print("\t");
+    Serial.print(lightErrorEW); Serial.print("\tEW\n");
+  }
+  
 
   // Compare error in East West direction
   if ( abs(lightErrorEW) > lightErrorThreshold ) {
 
     if ( lightErrorEW > 0 ) {
       servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
-      Serial.print("clockwise\t");
+      if (debugging) {Serial.print("clockwise\t");}
     }
     else if ( lightErrorEW < 0 ) {
       servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
-      Serial.print("counterclockwise\t");
+      if (debugging) {Serial.print("counterclockwise\t");}
     }
 
   }
@@ -92,17 +101,17 @@ void loop() {
 
     if ( lightErrorNS > 0 ) {
       servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
-      Serial.print("down\n");
+      if (debugging) {Serial.print("down\n");}
     }
     else if ( lightErrorNS < 0 ) {
       servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
-      Serial.print("up\n");
+      if (debugging) {Serial.print("up\n");}
     }
 
   }
 
 
   // Wait to ensure that the servo reaches its position
-  delay(20);
+  delay(100);
 
 }
