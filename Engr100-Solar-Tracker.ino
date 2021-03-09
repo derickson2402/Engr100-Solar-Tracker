@@ -88,13 +88,21 @@ void loop() {
   
   // If debugging is enabled, print diagnostics
   if (configDebug) {
-    
     Serial.print(analogRead(sensorSouthPin)); Serial.print("\t");
     Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
-    Serial.print(lightErrorNS); Serial.print("\tNS\n");
+    Serial.print(lightErrorNS); Serial.print("\tNS");
     Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
     Serial.print(analogRead(sensorEastPin) ); Serial.print("\t");
-    Serial.print(lightErrorEW); Serial.print("\tEW\n");
+    Serial.print(lightErrorEW); Serial.print("\tEW");
+
+    if (configBT) {
+      btSerial.print(analogRead(sensorSouthPin)); btSerial.print("\t");
+      btSerial.print(analogRead(sensorNorthPin) ); btSerial.print("\t");
+      btSerial.print(lightErrorNS); btSerial.print("\tNS");
+      btSerial.print(analogRead(sensorWestPin) ); btSerial.print("\t");
+      btSerial.print(analogRead(sensorEastPin) ); btSerial.print("\t");
+      btSerial.print(lightErrorEW); btSerial.print("\tEW");
+    }
   }
   
 
@@ -103,11 +111,18 @@ void loop() {
 
     if ( lightErrorEW > 0 ) {
       servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
-      if (configDebug) {Serial.print("clockwise\t");}
+      if (configDebug) {
+        Serial.print("clockwise\t");
+        if (configBT) {btSerial.print("clockwise\t");}
+      }
     }
+
     else if ( lightErrorEW < 0 ) {
       servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
-      if (configDebug) {Serial.print("counterclockwise\t");}
+      if (configDebug) {
+        Serial.print("counterclockwise\t");
+        if (configBT) {btSerial.print("counterclockwise\t");}
+      }
     }
 
   }
@@ -118,12 +133,18 @@ void loop() {
 
     if ( lightErrorNS > 0 ) {
       servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
-      if (configDebug) {Serial.print("down\n");}
+      if (configDebug) {
+        Serial.print("down\n");
+        if (configBT) {btSerial.print("down\n");}
+      }
     }
+    
     else if ( lightErrorNS < 0 ) {
       servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
-      if (configDebug) {Serial.print("up\n");}
-    }
+      if (configDebug) {
+        Serial.print("up\n");
+        if (configBT) {btSerial.print("up\n");}
+      }    }
 
   }
 
