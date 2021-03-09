@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    February 28, 2021
+    March 09, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -16,15 +16,17 @@ Course
     Engr 100-435
 
 Description
-    This program drives two servo motors connected to an Arduino, in order to
-    angle a solar panel towards a moving light source.
+    This program powers an Arduino to angle a solar panel towards a moving light source. The system uses 4 photoresistors and 2 servo motors, and can output diagnostic and periodic usage data over USB or Bluetooth serial.
 
-    Sensors and rotational axes are aligned according to a cardinal directional
-    system, with North and East being positive as such:
+    Axis Alignment
+    Sensors and rotational axes are configured with a cardinal directioin system. North/South corresponds to up/down, which changes the angle between the ground and the panel. East/West corresponds to right/left, which rotates the whole apparatus about the z axis parallel to the ground. The cardinal directions are aligned as such:
 
                            N                (+)
                          W-+-E    -->    (-)-+-(+)
                            S                (-)
+
+    Movement Algorithm
+    The servo position is updated using a simple error correction algorithm. The raw input from two opposite photoresistors is compared, and every cycle the servo motor on that axis will move one tick in the brighter direction.
 
 ##############################################################################*/
 
@@ -42,7 +44,8 @@ const int btRXPin = 11;             // Pin number for bt recieve (RX)
 // Declare thresholds and configurable settings
 const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
 const int servoMoveDist = 1;        // Servo position change in degrees
-const bool debugging = false;       // Set the debugging mode to true or false
+const bool configDebug = false;     // Turn debugging on or off
+const bool configBT = false;        // Turn bluetooth on or off
 
 // Open servo and serial objects
 Servo servoNS;                      // Servo object for North South servo
@@ -54,7 +57,9 @@ void setup() {
 
   // Open USB serial port
   Serial.begin(9600);
-  Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB")
+  Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB\n");
+  if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
+
 
   // Connect servo objects to their signal pins
   servoNS.attach(servoNSPin);
@@ -63,11 +68,13 @@ void setup() {
   servoEW.write(90);
 
   // Set bluetooth transmission pins and open serial port
-  pinMode(btRXPin, INPUT);
-  pinMode(btTXPin, OUTPUT);
-  btSerial.begin(9600);
-  btSerial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over Bluetooth");
-
+  if (configBT) {
+    pinMode(btRXPin, INPUT);
+    pinMode(btTXPin, OUTPUT);
+    btSerial.begin(9600);
+    btSerial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over Bluetooth\n");
+    if (configDebug){btSerial.println("*** Debugging Enabled ***\n");}
+  }
 }
 
 
@@ -80,8 +87,9 @@ void loop() {
   
   
   // If debugging is enabled, print diagnostics
-  if (debugging) {
-    Serial.print(analogRead(sensorSouthPin) ); Serial.print("\t");
+  if (configDebug) {
+    
+    Serial.print(analogRead(sensorSouthPin)); Serial.print("\t");
     Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
     Serial.print(lightErrorNS); Serial.print("\tNS\n");
     Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
@@ -95,11 +103,11 @@ void loop() {
 
     if ( lightErrorEW > 0 ) {
       servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
-      if (debugging) {Serial.print("clockwise\t");}
+      if (configDebug) {Serial.print("clockwise\t");}
     }
     else if ( lightErrorEW < 0 ) {
       servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
-      if (debugging) {Serial.print("counterclockwise\t");}
+      if (configDebug) {Serial.print("counterclockwise\t");}
     }
 
   }
@@ -110,11 +118,11 @@ void loop() {
 
     if ( lightErrorNS > 0 ) {
       servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
-      if (debugging) {Serial.print("down\n");}
+      if (configDebug) {Serial.print("down\n");}
     }
     else if ( lightErrorNS < 0 ) {
       servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
-      if (debugging) {Serial.print("up\n");}
+      if (configDebug) {Serial.print("up\n");}
     }
 
   }
