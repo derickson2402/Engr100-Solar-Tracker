@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <SoftwareSerial.h>
 
 /*##############################################################################
 
@@ -28,36 +29,44 @@ Description
 ##############################################################################*/
 
 
-// Establish sensor pins, servo pins, and threshold values
-const int sensorWestPin = 0;        // The pin number for west photoresistor
-const int sensorEastPin = 1;        // The pin number for east photoresistor
-const int sensorNorthPin = 2;       // The pin number for north photoresistor
-const int sensorSouthPin = 3;       // The pin number for south photoresistor
-const int lightErrorThreshold = 100; // Threshold for the light level error, below which the servo position will not change
-const int servoNSPin = 5;           // The pin number for NS servo
-const int servoEWPin = 6;           // The pin number for EW servo
-const int servoMoveDist = 1;        // Distance in degrees a servo will move at a time
-Servo servoNS;                      // Servo object for North South servo
-Servo servoEW;                      // Servo object for East West servo
+// Declare sensor and transmission pin numbers
+const int sensorWestPin = 0;        // Pin number for west photoresistor
+const int sensorEastPin = 1;        // Pin number for east photoresistor
+const int sensorNorthPin = 2;       // Pin number for north photoresistor
+const int sensorSouthPin = 3;       // Pin number for south photoresistor
+const int servoNSPin = 5;           // Pin number for NS servo
+const int servoEWPin = 6;           // Pin number for EW servo
+const int btTXPin = 10;             // Pin number for bt transmit (TX)
+const int btRXPin = 11;             // Pin number for bt recieve (RX)
+
+// Declare thresholds and configurable settings
+const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
+const int servoMoveDist = 1;        // Servo position change in degrees
 const bool debugging = false;       // Set the debugging mode to true or false
 
-
-/* TODO: Currently the program uses raw light level error to determine
-actions, but it might be useful to have a conversion function so
-that actual irradiance values can be used
-int Convert the raw input to a 10 bit scale ( raw) {}*/
+// Open servo and serial objects
+Servo servoNS;                      // Servo object for North South servo
+Servo servoEW;                      // Servo object for East West servo
+SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
 
 
 void setup() {
 
-  // Open a serial port for remote instrument reading
+  // Open USB serial port
   Serial.begin(9600);
+  Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB")
 
   // Connect servo objects to their signal pins
   servoNS.attach(servoNSPin);
   servoEW.attach(servoEWPin);
   servoNS.write(90);
   servoEW.write(90);
+
+  // Set bluetooth transmission pins and open serial port
+  pinMode(btRXPin, INPUT);
+  pinMode(btTXPin, OUTPUT);
+  btSerial.begin(9600);
+  btSerial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over Bluetooth");
 
 }
 
