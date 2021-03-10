@@ -28,6 +28,9 @@ Description
     Movement Algorithm
     The servo position is updated using a simple error correction algorithm. The raw input from two opposite photoresistors is compared, and every cycle the servo motor on that axis will move one tick in the brighter direction.
 
+    Bluetooth Serial Output
+    By default the program will send debugging and serial outputs to the default port, which goes to pin 13 and to the USB port. When bluetooth is on, this data will also be sent to the specified bluetooth port. This code is tested to work on a HC-05 Serial Bluetooth Module v1.3.
+
 ##############################################################################*/
 
 
@@ -36,10 +39,10 @@ const int sensorWestPin = 0;        // Pin number for west photoresistor
 const int sensorEastPin = 1;        // Pin number for east photoresistor
 const int sensorNorthPin = 2;       // Pin number for north photoresistor
 const int sensorSouthPin = 3;       // Pin number for south photoresistor
-const int servoNSPin = 5;           // Pin number for NS servo
-const int servoEWPin = 6;           // Pin number for EW servo
-const int btTXPin = 10;             // Pin number for bt transmit (TX)
-const int btRXPin = 11;             // Pin number for bt recieve (RX)
+const int servoNSPin = 10;          // Pin number for NS servo
+const int servoEWPin = 11;          // Pin number for EW servo
+const int btTXPin = 5;              // Pin number for bt transmit (TX)
+const int btRXPin = 6;              // Pin number for bt recieve (RX)
 
 // Declare thresholds and configurable settings
 const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
@@ -90,21 +93,21 @@ void loop() {
   if (configDebug) {
     Serial.print(analogRead(sensorSouthPin)); Serial.print("\t");
     Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
-    Serial.print(lightErrorNS); Serial.print("\tNS");
+    Serial.print(lightErrorNS); Serial.print("\tNS\t");
     Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
     Serial.print(analogRead(sensorEastPin) ); Serial.print("\t");
-    Serial.print(lightErrorEW); Serial.print("\tEW");
+    Serial.print(lightErrorEW); Serial.print("\tEW\t");
 
     if (configBT) {
       btSerial.print(analogRead(sensorSouthPin)); btSerial.print("\t");
       btSerial.print(analogRead(sensorNorthPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorNS); btSerial.print("\tNS");
+      btSerial.print(lightErrorNS); btSerial.print("\tNS\t");
       btSerial.print(analogRead(sensorWestPin) ); btSerial.print("\t");
       btSerial.print(analogRead(sensorEastPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorEW); btSerial.print("\tEW");
+      btSerial.print(lightErrorEW); btSerial.print("\tEW\t");
     }
   }
-  
+
 
   // Compare error in East West direction
   if ( abs(lightErrorEW) > lightErrorThreshold ) {
@@ -144,8 +147,10 @@ void loop() {
       if (configDebug) {
         Serial.print("up\n");
         if (configBT) {btSerial.print("up\n");}
-      }    }
+      }
+    }
 
+    else {Serial.print("\n"); if (configBT) {btSerial.print("\n");}}
   }
 
 
