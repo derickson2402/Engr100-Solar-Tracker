@@ -16,20 +16,32 @@ Course
     Engr 100-435
 
 Description
-    This program powers an Arduino to angle a solar panel towards a moving light source. The system uses 4 photoresistors and 2 servo motors, and can output diagnostic and periodic usage data over USB or Bluetooth serial.
+    This program powers an Arduino to angle a solar panel towards a moving
+    light source. The system uses 4 photoresistors and 2 servo motors, and can
+    output diagnostic and periodic usage data over USB or Bluetooth serial.
 
     Axis Alignment
-    Sensors and rotational axes are configured with a cardinal directioin system. North/South corresponds to up/down, which changes the angle between the ground and the panel. East/West corresponds to right/left, which rotates the whole apparatus about the z axis parallel to the ground. The cardinal directions are aligned as such:
+    Sensors and rotational axes are configured with a cardinal directioin
+    system. North/South corresponds to up/down, which changes the angle between
+    the ground and the panel. East/West corresponds to right/left, which
+    rotates the whole apparatus about the z axis parallel to the ground. The
+    cardinal directions are aligned as such:
 
                            N                (+)
                          W-+-E    -->    (-)-+-(+)
                            S                (-)
 
     Movement Algorithm
-    The servo position is updated using a simple error correction algorithm. The raw input from two opposite photoresistors is compared, and every cycle the servo motor on that axis will move one tick in the brighter direction.
+    The servo position is updated using a closed loop control structure. The
+    raw inputs from both photoresistors on an axis are compared, and if the
+    percent difference is higher than the threshold the servo motor will move
+    one tick in the brighter direction.
 
     Bluetooth Serial Output
-    By default the program will send debugging and serial outputs to the default port, which goes to pin 13 and to the USB port. When bluetooth is on, this data will also be sent to the specified bluetooth port. This code is tested to work on a HC-05 Serial Bluetooth Module v1.3.
+    By default the program will send debugging and serial outputs to the
+    default port, which goes to pin 13 and to the USB port. When bluetooth is
+    on, this data will also be sent to the specified bluetooth port. This code
+    is tested to work on a HC-05 Serial Bluetooth Module v1.3.
 
 ##############################################################################*/
 
@@ -45,7 +57,7 @@ const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
 
 // Declare thresholds and configurable settings
-const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
+const double lightDiffThreshold = 1.0; // Min light difference
 const int servoMoveDist = 1;        // Servo position change in degrees
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
@@ -85,34 +97,37 @@ void loop() {
 
   // Calculate the error on each axis, or the difference between the sensor
   // light levels
-  int lightErrorNS = analogRead(sensorSouthPin) - analogRead(sensorNorthPin);
-  int lightErrorEW = analogRead(sensorWestPin) - analogRead(sensorEastPin);
-  
-  
+  int sensorNorthLight = analogRead(sensorNorthPin);
+  int sensorSouthLight = analogRead(sensorSouthPin);
+  int sensorEastLight = analogRead(sensorEastPin);
+  int sensorWestLight = analogRead(sensorWestPin);
+  double sensorEWDiff = ( (double)abs(sensorWestLight - sensorEastLight) / ( (double)(sensorWestLight + sensorEastLight) / 2.0)) * 100.0;
+  double sensorNSDiff = ( (double)abs(sensorSouthLight - sensorNorthLight) / ( (double)(sensorSouthLight + sensorNorthLight) / 2.0)) * 100.0;
+
   // If debugging is enabled, print diagnostics
   if (configDebug) {
-    Serial.print(analogRead(sensorSouthPin)); Serial.print("\t");
-    Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
-    Serial.print(lightErrorNS); Serial.print("\tNS\t");
-    Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
-    Serial.print(analogRead(sensorEastPin) ); Serial.print("\t");
-    Serial.print(lightErrorEW); Serial.print("\tEW\t");
+    Serial.print("NS\t"); Serial.print(sensorNSDiff);
+    Serial.print("\t"); Serial.print(sensorNorthLight);
+    Serial.print("\t"); Serial.print(sensorSouthLight);
+    Serial.print("\tEW\t"); Serial.print(sensorEWDiff);
+    Serial.print("\t"); Serial.print(sensorEastLight);
+    Serial.print("\t"); Serial.print(sensorWestLight);
 
     if (configBT) {
-      btSerial.print(analogRead(sensorSouthPin)); btSerial.print("\t");
-      btSerial.print(analogRead(sensorNorthPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorNS); btSerial.print("\tNS\t");
-      btSerial.print(analogRead(sensorWestPin) ); btSerial.print("\t");
-      btSerial.print(analogRead(sensorEastPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorEW); btSerial.print("\tEW\t");
+      btSerial.print("NS\t"); btSerial.print(sensorNSDiff);
+      btSerial.print("\t"); btSerial.print(sensorNorthLight);
+      btSerial.print("\t"); btSerial.print(sensorSouthLight);
+      btSerial.print("\tEW\t"); btSerial.print(sensorEWDiff);
+      btSerial.print("\t"); btSerial.print(sensorEastLight);
+      btSerial.print("\t"); btSerial.print(sensorWestLight);
     }
   }
 
 
-  // Compare error in East West direction
-  if ( abs(lightErrorEW) > lightErrorThreshold ) {
+  // Compare percent difference in East West direction
+  if ( sensorEWDiff > lightDiffThreshold ) {
 
-    if ( lightErrorEW > 0 ) {
+    if ( sensorWestLight > sensorEastLight ) {
       servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
       if (configDebug) {
         Serial.print("clockwise\t");
@@ -120,7 +135,7 @@ void loop() {
       }
     }
 
-    else if ( lightErrorEW < 0 ) {
+    else if ( sensorEastLight > sensorWestLight ) {
       servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
       if (configDebug) {
         Serial.print("counterclockwise\t");
@@ -131,10 +146,10 @@ void loop() {
   }
 
 
-  // Compare error in North South direction
-  if ( abs(lightErrorNS) > lightErrorThreshold ) {
+  // Compare percent difference in North South direction
+  if ( sensorNSDiff > lightDiffThreshold ) {
 
-    if ( lightErrorNS > 0 ) {
+    if ( sensorSouthLight > sensorNorthLight ) {
       servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
       if (configDebug) {
         Serial.print("down\n");
@@ -142,7 +157,7 @@ void loop() {
       }
     }
     
-    else if ( lightErrorNS < 0 ) {
+    else if ( sensorNorthLight > sensorSouthLight ) {
       servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
       if (configDebug) {
         Serial.print("up\n");
