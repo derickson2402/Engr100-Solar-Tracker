@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    March 09, 2021
+    March 21, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -51,21 +51,51 @@ const int sensorWestPin = 0;        // Pin number for west photoresistor
 const int sensorEastPin = 1;        // Pin number for east photoresistor
 const int sensorNorthPin = 2;       // Pin number for north photoresistor
 const int sensorSouthPin = 3;       // Pin number for south photoresistor
+const int sensorTempPin = 4;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
 
 // Declare thresholds and configurable settings
-const double lightDiffThreshold = 1.0; // Min light difference
+const double configLightThreshold = 1.0; // Min light percent difference
 const int servoMoveDist = 1;        // Servo position change in degrees
+const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
+const int configServoDist = 1;        // Servo position change in degrees
+const int configServoDelay = 10;    // Servo time between pos updates in ms
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
+const bool configBTInterval = 60;   // Set bluetooth update interval in seconds
 
 // Open servo and serial objects
 Servo servoNS;                      // Servo object for North South servo
 Servo servoEW;                      // Servo object for East West servo
 SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
+
+
+// Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
+int calcIrrad(const int &signalA, const int &signalB, const int &signalC, const int &signalD) {
+
+  // Average the input signal
+  double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
+
+  // Calculate the irradiance
+  double irrad = (655 * pow(signalAvg, 2.0)) - (4735 * signalAvg) + 8670;
+  return((int)(irrad + 0.5));
+
+}
+
+
+// Calculate the temperature in Celcius from a temperature sensor signal
+int calcTemp(const int &signal) {
+
+  // Calculate the temperature
+  // TODO: Add math here for temperature conversion
+  // The following line is a placeholder
+  int temp = 1234;
+  return(temp);
+
+}
 
 
 void setup() {
@@ -95,81 +125,69 @@ void setup() {
 
 void loop() {
 
-  // Calculate the error on each axis, or the difference between the sensor
-  // light levels
-  int sensorNorthLight = analogRead(sensorNorthPin);
-  int sensorSouthLight = analogRead(sensorSouthPin);
-  int sensorEastLight = analogRead(sensorEastPin);
-  int sensorWestLight = analogRead(sensorWestPin);
-  double sensorEWDiff = ( (double)abs(sensorWestLight - sensorEastLight) / ( (double)(sensorWestLight + sensorEastLight) / 2.0)) * 100.0;
-  double sensorNSDiff = ( (double)abs(sensorSouthLight - sensorNorthLight) / ( (double)(sensorSouthLight + sensorNorthLight) / 2.0)) * 100.0;
+  // Measure light level signal, irradiance signal, and temperature signal, then
+  // calculate the light level percent error
+  int sensorNorthSignal = analogRead(sensorNorthPin);
+  int sensorSouthSignal = analogRead(sensorSouthPin);
+  int sensorEastSignal = analogRead(sensorEastPin);
+  int sensorWestSignal = analogRead(sensorWestPin);
+  int sensorTempSignal = analogRead(sensorTempPin);
+  double sensorEWDiff = ((double)abs(sensorWestSignal - sensorEastSignal) / ((double)(sensorWestSignal + sensorEastSignal) / 2.0)) * 100.0;
+  double sensorNSDiff = ((double)abs(sensorSouthSignal - sensorNorthSignal) / ((double)(sensorSouthSignal + sensorNorthSignal) / 2.0)) * 100.0;
 
   // If debugging is enabled, print diagnostics
   if (configDebug) {
-    Serial.print("NS\t"); Serial.print(sensorNSDiff);
-    Serial.print("\t"); Serial.print(sensorNorthLight);
-    Serial.print("\t"); Serial.print(sensorSouthLight);
-    Serial.print("\tEW\t"); Serial.print(sensorEWDiff);
-    Serial.print("\t"); Serial.print(sensorEastLight);
-    Serial.print("\t"); Serial.print(sensorWestLight);
-
-    if (configBT) {
-      btSerial.print("NS\t"); btSerial.print(sensorNSDiff);
-      btSerial.print("\t"); btSerial.print(sensorNorthLight);
-      btSerial.print("\t"); btSerial.print(sensorSouthLight);
-      btSerial.print("\tEW\t"); btSerial.print(sensorEWDiff);
-      btSerial.print("\t"); btSerial.print(sensorEastLight);
-      btSerial.print("\t"); btSerial.print(sensorWestLight);
-    }
+    Serial.print(sensorNorthSignal); Serial.print("\t");
+    Serial.print(sensorSouthSignal); Serial.print("\t");
+    Serial.print(sensorNSDiff); Serial.print("\tNS\t");
+    Serial.print(sensorEastSignal); Serial.print("\t");
+    Serial.print(sensorWestSignal); Serial.print("\t");
+    Serial.print(sensorEWDiff); Serial.print("\tEW\t");
   }
-
 
   // Compare percent difference in East West direction
-  if ( sensorEWDiff > lightDiffThreshold ) {
+  if ( sensorEWDiff > configLightThreshold ) {
 
-    if ( sensorWestLight > sensorEastLight ) {
-      servoEW.write(servoEW.read() - servoMoveDist); // Twist clockwise to the West
-      if (configDebug) {
-        Serial.print("clockwise\t");
-        if (configBT) {btSerial.print("clockwise\t");}
-      }
+    if (sensorWestSignal > sensorEastSignal) {
+      servoEW.write(servoEW.read() - configServoDist); // Twist clockwise to the West
+      if (configDebug) {Serial.print("clockwise\t");}
     }
 
-    else if ( sensorEastLight > sensorWestLight ) {
-      servoEW.write(servoEW.read() + servoMoveDist); // Twist counterclockwise to the East
-      if (configDebug) {
-        Serial.print("counterclockwise\t");
-        if (configBT) {btSerial.print("counterclockwise\t");}
-      }
+    else if (sensorEastSignal > sensorWestSignal) {
+      servoEW.write(servoEW.read() + configServoDist); // Twist counterclockwise to the East
+      if (configDebug) {Serial.print("counterclockwise\t");}
     }
 
   }
-
 
   // Compare percent difference in North South direction
-  if ( sensorNSDiff > lightDiffThreshold ) {
+  if ( sensorNSDiff > configLightThreshold ) {
 
-    if ( sensorSouthLight > sensorNorthLight ) {
-      servoNS.write(servoNS.read() - servoMoveDist); // Angle down to the south
-      if (configDebug) {
-        Serial.print("down\n");
-        if (configBT) {btSerial.print("down\n");}
-      }
-    }
-    
-    else if ( sensorNorthLight > sensorSouthLight ) {
-      servoNS.write(servoNS.read() + servoMoveDist); // Angle up to the north
-      if (configDebug) {
-        Serial.print("up\n");
-        if (configBT) {btSerial.print("up\n");}
-      }
+    if (sensorSouthSignal > sensorNorthSignal) {
+      servoNS.write(servoNS.read() - configServoDist); // Angle down to the south
+      if (configDebug) {Serial.print("down\n");}
     }
 
-    else {Serial.print("\n"); if (configBT) {btSerial.print("\n");}}
+    else if (sensorNorthSignal > sensorSouthSignal) {
+      servoNS.write(servoNS.read() + configServoDist); // Angle up to the north
+      if (configDebug) {Serial.print("up\n");}
+    }
+
+    else {Serial.print("\n");}
+
   }
 
+  // Report data over bluetooth if current time is correct
+  if (configBT) {
+    if ((millis() % (configBTInterval * 1000)) < configServoDelay) {
+      btSerial.print("Current Time:             "); btSerial.println(millis() / 1000);
+      btSerial.print("Ambient Temperature:      "); btSerial.println(calcTemp(sensorTempSignal));
+      btSerial.print("Maximum Irradiance:       "); btSerial.println(calcIrrad(sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal));
+      btSerial.print("Relative Sun Position:    "); btSerial.println("PLACEHOLDER");
+    }
+  }
 
   // Wait to ensure that the servo reaches its position
-  delay(100);
+  delay(configServoDelay);
 
 }
