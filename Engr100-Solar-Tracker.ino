@@ -68,6 +68,31 @@ Servo servoEW;                      // Servo object for East West servo
 SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
 
 
+// Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
+int calcIrrad(int signalA, int signalB, int signalC, int signalD) {
+
+  // Average the input signal
+  double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
+
+  // Calculate the irradiance
+  double irrad = (655 * pow(signalAvg, 2.0)) - (4735 * signalAvg) + 8670;
+  return((int)(irrad + 0.5));
+
+}
+
+
+// Calculate the temperature in Celcius from a temperature sensor signal
+int calcTemp(int signal) {
+
+  // Calculate the temperature
+  // TODO: Add math here for temperature conversion
+  // The following line is a placeholder
+  int temp = 1234;
+  return(temp);
+
+}
+
+
 void setup() {
 
   // Open USB serial port
