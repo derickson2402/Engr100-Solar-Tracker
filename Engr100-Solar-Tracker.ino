@@ -136,21 +136,12 @@ void loop() {
   
   // If debugging is enabled, print diagnostics
   if (configDebug) {
-    Serial.print(analogRead(sensorSouthPin)); Serial.print("\t");
-    Serial.print(analogRead(sensorNorthPin) ); Serial.print("\t");
+    Serial.print(sensorNorthSignal); Serial.print("\t");
+    Serial.print(sensorSouthSignal); Serial.print("\t");
     Serial.print(lightErrorNS); Serial.print("\tNS\t");
-    Serial.print(analogRead(sensorWestPin) ); Serial.print("\t");
-    Serial.print(analogRead(sensorEastPin) ); Serial.print("\t");
+    Serial.print(sensorEastSignal); Serial.print("\t");
+    Serial.print(sensorWestSignal); Serial.print("\t");
     Serial.print(lightErrorEW); Serial.print("\tEW\t");
-
-    if (configBT) {
-      btSerial.print(analogRead(sensorSouthPin)); btSerial.print("\t");
-      btSerial.print(analogRead(sensorNorthPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorNS); btSerial.print("\tNS\t");
-      btSerial.print(analogRead(sensorWestPin) ); btSerial.print("\t");
-      btSerial.print(analogRead(sensorEastPin) ); btSerial.print("\t");
-      btSerial.print(lightErrorEW); btSerial.print("\tEW\t");
-    }
   }
 
 
@@ -159,18 +150,12 @@ void loop() {
 
     if ( lightErrorEW > 0 ) {
       servoEW.write(servoEW.read() - configServoDist); // Twist clockwise to the West
-      if (configDebug) {
-        Serial.print("clockwise\t");
-        if (configBT) {btSerial.print("clockwise\t");}
-      }
+      if (configDebug) {Serial.print("clockwise\t");}
     }
 
     else if ( lightErrorEW < 0 ) {
       servoEW.write(servoEW.read() + configServoDist); // Twist counterclockwise to the East
-      if (configDebug) {
-        Serial.print("counterclockwise\t");
-        if (configBT) {btSerial.print("counterclockwise\t");}
-      }
+      if (configDebug) {Serial.print("counterclockwise\t");}
     }
 
   }
@@ -181,30 +166,27 @@ void loop() {
 
     if ( lightErrorNS > 0 ) {
       servoNS.write(servoNS.read() - configServoDist); // Angle down to the south
-      if (configDebug) {
-        Serial.print("down\n");
-        if (configBT) {btSerial.print("down\n");}
-      }
-    }
-    
-    else if ( lightErrorNS < 0 ) {
-      servoNS.write(servoNS.read() + configServoDist); // Angle up to the north
-      if (configDebug) {
-        Serial.print("up\n");
-        if (configBT) {btSerial.print("up\n");}
-      }
+      if (configDebug) {Serial.print("down\n");}
     }
 
-    else {Serial.print("\n"); if (configBT) {btSerial.print("\n");}}
+    else if ( lightErrorNS < 0 ) {
+      servoNS.write(servoNS.read() + configServoDist); // Angle up to the north
+      if (configDebug) {Serial.print("up\n");}
+    }
+
+    else {Serial.print("\n");}
+
   }
 
 
   // Report data over bluetooth if current time is correct
-  if ((millis() % (configBTInterval * 1000)) < configServoDelay) {
-    btSerial.print("Current Time:             "); btSerial.println(millis() / 1000);
-    btSerial.print("Ambient Temperature:      "); btSerial.println(calcTemp(sensorTempSignal));
-    btSerial.print("Maximum Irradiance:       "); btSerial.println(calcIrrad(sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal));
-    btSerial.print("Relative Sun Position:    "); btSerial.println("PLACEHOLDER");
+  if (configBT) {
+    if ((millis() % (configBTInterval * 1000)) < configServoDelay) {
+      btSerial.print("Current Time:             "); btSerial.println(millis() / 1000);
+      btSerial.print("Ambient Temperature:      "); btSerial.println(calcTemp(sensorTempSignal));
+      btSerial.print("Maximum Irradiance:       "); btSerial.println(calcIrrad(sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal));
+      btSerial.print("Relative Sun Position:    "); btSerial.println("PLACEHOLDER");
+    }
   }
 
 
