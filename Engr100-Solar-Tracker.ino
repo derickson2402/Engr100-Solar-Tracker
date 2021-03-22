@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    March 21, 2021
+    March 22, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -86,14 +86,12 @@ int calcIrrad(const int &signalA, const int &signalB, const int &signalC, const 
 }
 
 
-// Calculate the temperature in Celcius from a temperature sensor signal
+// Calculate the temperature (deg Celsius) from a temperature sensor signal
 int calcTemp(const int &signal) {
 
   // Calculate the temperature
-  // TODO: Add math here for temperature conversion
-  // The following line is a placeholder
-  int temp = 1234;
-  return(temp);
+  double temp = (((double)signal * 0.004882813) - 0.5) * 100;
+  return((int)(temp + 0.5));
 
 }
 
