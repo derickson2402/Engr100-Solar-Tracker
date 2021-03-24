@@ -46,7 +46,7 @@ Description
 ##############################################################################*/
 
 
-// Declare sensor and transmission pin numbers
+// Declare user settings. These should be modified before running the program
 const int sensorWestPin = 0;        // Pin number for west photoresistor
 const int sensorEastPin = 1;        // Pin number for east photoresistor
 const int sensorNorthPin = 2;       // Pin number for north photoresistor
@@ -56,21 +56,13 @@ const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
-
-// Declare thresholds and configurable settings
-const double configLightThreshold = 1.0; // Min light percent difference
+const double configLightThreshold = 1.0; // Min light % difference for movement
 const int servoMoveDist = 1;        // Servo position change in degrees
-const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
-const int configServoDist = 1;        // Servo position change in degrees
+const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // Servo time between pos updates in ms
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
 const bool configBTInterval = 60;   // Set bluetooth update interval in seconds
-
-// Open servo and serial objects
-Servo servoNS;                      // Servo object for North South servo
-Servo servoEW;                      // Servo object for East West servo
-SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
 
 
 // Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
@@ -116,13 +108,19 @@ void servoInvert(bool& toggleInvert) {
 }
 
 
+// Declare global scope variables. These should not be modified before running
+Servo servoNS;                      // Servo object for North South servo
+Servo servoEW;                      // Servo object for East West servo
+SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
+bool servoEWInvert = false;
+
+
 void setup() {
 
   // Open USB serial port
   Serial.begin(9600);
   Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB\n");
   if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
-
 
   // Connect servo objects to their signal pins
   servoNS.attach(servoNSPin);
