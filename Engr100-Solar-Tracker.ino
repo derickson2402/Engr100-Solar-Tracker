@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    March 22, 2021
+    March 24, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -58,10 +58,9 @@ const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
 
 // Declare thresholds and configurable settings
-const double configLightThreshold = 1.0; // Min light percent difference
+const double configLightThreshold = 1.0; // Min light % difference before moving
 const int servoMoveDist = 1;        // Servo position change in degrees
-const int lightErrorThreshold = 100; // Min lightlevel dif for movement to occur
-const int configServoDist = 1;        // Servo position change in degrees
+const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // Servo time between pos updates in ms
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
