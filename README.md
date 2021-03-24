@@ -20,3 +20,28 @@ The servo position is updated using a simple error correction structure. The raw
 ## Bluetooth Serial Output
 
 When switched on, the program can send ambient environment data over Bluetooth serial. The data includes ambient temperature, incident solar irradiance, and relative sun position. This code is tested to work with a HC-05 Serial Bluetooth Module v1.3, but uses a standart 9600 baud serial connection and should work with any serial connection.
+
+## Set Up VS Code for Arduino
+
+The Arduino IDE is extremely limited in functionality, so it is useful to use VS Code for example. To develop Arduino programs on VS Code, install the following extensions:
+
+* Arduino
+* C/C++
+
+Then run the following commands (hit ```CMD + Shift + P``` or ```Ctrl + Shift + P```):
+
+```plaintext
+>Arduino: Initialize
+>Arduino: Rebuild IntelliSense Configuration
+```
+
+Choose ```Arduino Uno``` for the board type, and ```AVR ISP``` for the programmer. If you get error messages about ```Serial``` class, then add the following to ```.vscode/c_cpp_properties.json``` in ```defines```:
+
+```plaintext
+...
+"cppStandard": "c++11",
+"defines": [
+  "USBCON",
+  ...
+]
+```
