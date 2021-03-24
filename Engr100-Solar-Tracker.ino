@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    March 22, 2021
+    March 24, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -92,6 +92,26 @@ int calcTemp(const int &signal) {
   // Calculate the temperature
   double temp = (((double)signal * 0.004882813) - 0.5) * 100;
   return((int)(temp + 0.5));
+
+}
+
+
+// Flip the servos and invert EW axis when boundary is hit
+void servoInvert(bool& toggleInvert) {
+
+  // Record current NS position and set to 90 degrees (neutral position)
+  int servoNSOriginal = servoNS.read();
+  servoNS.write(90);
+  delay(configServoDelay);
+
+  // Flip the EW axis and set EW inversion
+  servoEW.write(180 - servoEW.read());
+  toggleInvert = !toggleInvert;
+  delay(configServoDelay);
+
+  // Flip the NS axis according to original position
+  servoNS.write(180 - servoNSOriginal);
+  delay(configServoDelay);
 
 }
 
