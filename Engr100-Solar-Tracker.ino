@@ -23,13 +23,13 @@ Description
     Axis Alignment
     Sensors and rotational axes are configured with a cardinal directioin
     system. North/South corresponds to up/down, which changes the angle between
-    the ground and the panel. East/West corresponds to right/left, which
-    rotates the whole apparatus about the z axis parallel to the ground. The
-    cardinal directions are aligned as such:
+    the ground and the panel. East/West corresponds to right/left and
+    clockwise/counterclockwise, which rotates the whole apparatus about the
+    z axis parallel to the ground. The cardinal directions are aligned as such:
 
-                           N                (+)
-                         W-+-E    -->    (-)-+-(+)
-                           S                (-)
+                         N                 (180)
+                       W-+-E    -->    ( 0 )-+-(180)
+                         S                 ( 0 )
 
     Movement Algorithm
     The servo position is updated using a simple error correction structure. The
@@ -46,30 +46,22 @@ Description
 ##############################################################################*/
 
 
-// Declare sensor and transmission pin numbers
-const int sensorWestPin = 0;        // Pin number for west photoresistor
-const int sensorEastPin = 1;        // Pin number for east photoresistor
-const int sensorNorthPin = 2;       // Pin number for north photoresistor
-const int sensorSouthPin = 3;       // Pin number for south photoresistor
+// Declare user settings. These should be modified before running the program
+const int sensorWestPin = 0;        // Pin number for West photoresistor
+const int sensorEastPin = 1;        // Pin number for East photoresistor
+const int sensorNorthPin = 2;       // Pin number for North photoresistor
+const int sensorSouthPin = 3;       // Pin number for South photoresistor
 const int sensorTempPin = 4;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
-
-// Declare thresholds and configurable settings
-const double configLightThreshold = 1.0; // Min light % difference before moving
-const int servoMoveDist = 1;        // Servo position change in degrees
+const double configLightThreshold = 1.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
-const int configServoDelay = 10;    // Servo time between pos updates in ms
+const int configServoDelay = 10;    // !0 # of ms between servo pos updates
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
 const bool configBTInterval = 60;   // Set bluetooth update interval in seconds
-
-// Open servo and serial objects
-Servo servoNS;                      // Servo object for North South servo
-Servo servoEW;                      // Servo object for East West servo
-SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
 
 
 // Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
@@ -95,13 +87,39 @@ int calcTemp(const int &signal) {
 }
 
 
+// Flip the servos and invert EW axis when boundary is hit
+void servoInvert(bool& toggleInvert) {
+
+  // Record current NS position and set to 90 degrees (neutral position)
+  int servoNSOriginal = servoNS.read();
+  servoNS.write(90);
+  delay(configServoDelay);
+
+  // Flip the EW axis and set EW inversion
+  servoEW.write(180 - servoEW.read());
+  toggleInvert = !toggleInvert;
+  delay(configServoDelay);
+
+  // Flip the NS axis according to original position
+  servoNS.write(180 - servoNSOriginal);
+  delay(configServoDelay);
+
+}
+
+
+// Declare global scope variables. These should not be modified before running
+Servo servoNS;                      // Servo object for North South servo
+Servo servoEW;                      // Servo object for East West servo
+SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
+bool servoEWInvert = false;
+
+
 void setup() {
 
   // Open USB serial port
   Serial.begin(9600);
   Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB\n");
   if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
-
 
   // Connect servo objects to their signal pins
   servoNS.attach(servoNSPin);
@@ -140,19 +158,58 @@ void loop() {
     Serial.print(sensorEastSignal); Serial.print("\t");
     Serial.print(sensorWestSignal); Serial.print("\t");
     Serial.print(sensorEWDiff); Serial.print("\tEW\t");
+    Serial.print(servoEWInvert); Serial.print("\tinvert\t");
   }
 
   // Compare percent difference in East West direction
-  if ( sensorEWDiff > configLightThreshold ) {
+  if (sensorEWDiff > configLightThreshold) {
 
-    if (sensorWestSignal > sensorEastSignal) {
-      servoEW.write(servoEW.read() - configServoDist); // Twist clockwise to the West
-      if (configDebug) {Serial.print("clockwise\t");}
+    // Inverted axis
+    if (servoEWInvert) {
+      // If servo needs to turn to the West
+      if (sensorWestSignal > sensorEastSignal) {
+        // If servo at boundary, flip it
+        if (servoEW.read() >= 180) {servoInvert(servoEWInvert);}
+        // Not at boundary, so twist counter-clockwise to the West
+        else {
+          servoEW.write(servoEW.read() + configServoDist);
+          if (configDebug) {Serial.print("West counter-clockwise\t");}
+        }
+      }
+      // If servo needs to turn to the East
+      else if (sensorEastSignal > sensorWestSignal) {
+        // If servo at boundary, flip it
+        if (servoEW.read() <= 0) {servoInvert(servoEWInvert);}
+        // Not at boundary, so twist clockwise to the East
+        else {
+          servoEW.write(servoEW.read() - configServoDist);
+          if (configDebug) {Serial.print("East clockwise\t");}
+        }
+      }
     }
 
-    else if (sensorEastSignal > sensorWestSignal) {
-      servoEW.write(servoEW.read() + configServoDist); // Twist counterclockwise to the East
-      if (configDebug) {Serial.print("counterclockwise\t");}
+    // Normal axis, not inverted
+    else if (!servoEWInvert) {
+      // If servo needs to turn to the West
+      if (sensorWestSignal > sensorEastSignal) {
+        // If servo at boundary, flip it
+        if (servoEW.read() <= 0) {servoInvert(servoEWInvert);}
+        // Not at boundary, so twist clockwise to the West
+        else {
+          servoEW.write(servoEW.read() - configServoDist);
+          if (configDebug) {Serial.print("West clockwise\t");}
+        }
+      }
+      // If servo needs to turn to the East
+      else if (sensorEastSignal > sensorWestSignal) {
+        // If servo at boundary, flip it
+        if (servoEW.read() >= 180) {servoInvert(servoEWInvert);}
+        // Not at boundary, so twist counter-clockwise to the East
+        else {
+          servoEW.write(servoEW.read() + configServoDist);
+          if (configDebug) {Serial.print("East counter-clockwise\t");}
+        }
+      }
     }
 
   }
@@ -161,13 +218,17 @@ void loop() {
   if ( sensorNSDiff > configLightThreshold ) {
 
     if (sensorSouthSignal > sensorNorthSignal) {
-      servoNS.write(servoNS.read() - configServoDist); // Angle down to the south
-      if (configDebug) {Serial.print("down\n");}
+      // Toggle EW inversion off when crossing over 90 degrees
+      if (servoNS.read() == 90) {servoEWInvert = false;}
+      servoNS.write(servoNS.read() - configServoDist); // Angle to the South
+      if (configDebug) {Serial.println("South");}
     }
 
     else if (sensorNorthSignal > sensorSouthSignal) {
-      servoNS.write(servoNS.read() + configServoDist); // Angle up to the north
-      if (configDebug) {Serial.print("up\n");}
+      // Toggle EW inversion on when crossing over 90 degrees
+      if (servoNS.read() == 90) {servoEWInvert = true;}
+      servoNS.write(servoNS.read() + configServoDist); // Angle to the North
+      if (configDebug) {Serial.println("North");}
     }
 
     else {Serial.print("\n");}

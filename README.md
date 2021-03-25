@@ -5,12 +5,12 @@ This program powers an Arduino to angle a solar panel towards a moving light sou
 
 ## Axis Alignment
 
-Sensors and rotational axes are configured with a cardinal directioin system. North/South corresponds to up/down, which changes the angle between the ground and the panel. East/West corresponds to right/left, which rotates the whole apparatus about the z axis parallel to the ground. The cardinal directions are aligned as such:
+Sensors and rotational axes are configured with a cardinal directioin system. North/South corresponds to up/down, which changes the angle between the ground and the panel. East/West corresponds to right/left and clockwise/counterclockwise, which rotates the whole apparatus about the z axis parallel to the ground. The cardinal directions are aligned as such:
 
 ```plaintext
-  N                (+)
-W-+-E    -->    (-)-+-(+)
-  S                (-)
+  N                 (180)
+W-+-E    -->    ( 0 )-+-(180)
+  S                 ( 0 )
 ```
 
 ## Movement Algorithm
