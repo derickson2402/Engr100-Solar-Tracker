@@ -56,55 +56,12 @@ const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const int btTXPin = 5;              // Pin number for bt transmit (TX)
 const int btRXPin = 6;              // Pin number for bt recieve (RX)
-const double configLightThreshold = 1.0; // Min light % difference for movement
+const double configLightThreshold = 10.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // !0 # of ms between servo pos updates
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
 const bool configBTInterval = 60;   // Set bluetooth update interval in seconds
-
-
-// Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
-int calcIrrad(const int &signalA, const int &signalB, const int &signalC, const int &signalD) {
-
-  // Average the input signal
-  double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
-
-  // Calculate the irradiance
-  double irrad = (655 * pow(signalAvg, 2.0)) - (4735 * signalAvg) + 8670;
-  return((int)(irrad + 0.5));
-
-}
-
-
-// Calculate the temperature (deg Celsius) from a temperature sensor signal
-int calcTemp(const int &signal) {
-
-  // Calculate the temperature
-  double temp = (((double)signal * 0.004882813) - 0.5) * 100;
-  return((int)(temp + 0.5));
-
-}
-
-
-// Flip the servos and invert EW axis when boundary is hit
-void servoInvert(bool& toggleInvert) {
-
-  // Record current NS position and set to 90 degrees (neutral position)
-  int servoNSOriginal = servoNS.read();
-  servoNS.write(90);
-  delay(configServoDelay);
-
-  // Flip the EW axis and set EW inversion
-  servoEW.write(180 - servoEW.read());
-  toggleInvert = !toggleInvert;
-  delay(configServoDelay);
-
-  // Flip the NS axis according to original position
-  servoNS.write(180 - servoNSOriginal);
-  delay(configServoDelay);
-
-}
 
 
 // Declare global scope variables. These should not be modified before running
@@ -246,6 +203,49 @@ void loop() {
   }
 
   // Wait to ensure that the servo reaches its position
+  delay(configServoDelay);
+
+}
+
+
+// Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
+int calcIrrad(const int &signalA, const int &signalB, const int &signalC, const int &signalD) {
+
+  // Average the input signal
+  double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
+
+  // Calculate the irradiance
+  double irrad = (655 * pow(signalAvg, 2.0)) - (4735 * signalAvg) + 8670;
+  return((int)(irrad + 0.5));
+
+}
+
+
+// Calculate the temperature (deg Celsius) from a temperature sensor signal
+int calcTemp(const int &signal) {
+
+  // Calculate the temperature
+  double temp = (((double)signal * 0.004882813) - 0.5) * 100;
+  return((int)(temp + 0.5));
+
+}
+
+
+// Flip the servos and invert EW axis when boundary is hit
+void servoInvert(bool& toggleInvert) {
+
+  // Record current NS position and set to 90 degrees (neutral position)
+  int servoNSOriginal = servoNS.read();
+  servoNS.write(90);
+  delay(configServoDelay);
+
+  // Flip the EW axis and set EW inversion
+  servoEW.write(180 - servoEW.read());
+  toggleInvert = !toggleInvert;
+  delay(configServoDelay);
+
+  // Flip the NS axis according to original position
+  servoNS.write(180 - servoNSOriginal);
   delay(configServoDelay);
 
 }
