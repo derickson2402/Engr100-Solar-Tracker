@@ -1,5 +1,4 @@
 #include <Servo.h>
-#include <SoftwareSerial.h>
 
 /*##############################################################################
 
@@ -54,20 +53,15 @@ const int sensorSouthPin = 3;       // Pin number for South photoresistor
 const int sensorTempPin = 4;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
-const int btTXPin = 5;              // Pin number for bt transmit (TX)
-const int btRXPin = 6;              // Pin number for bt recieve (RX)
 const double configLightThreshold = 10.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // !0 # of ms between servo pos updates
 const bool configDebug = false;     // Turn debugging on or off
-const bool configBT = false;        // Turn bluetooth on or off
-const bool configBTInterval = 10;   // Set bluetooth update interval in seconds
 
 
 // Declare global scope variables. These should not be modified before running
 Servo servoNS;                      // Servo object for North South servo
 Servo servoEW;                      // Servo object for East West servo
-SoftwareSerial btSerial(btRXPin,btTXPin); // Serial port to bluetooth device
 bool servoEWInvert = false;
 
 
@@ -84,14 +78,6 @@ void setup() {
   servoNS.write(90);
   servoEW.write(90);
 
-  // Set bluetooth transmission pins and open serial port
-  if (configBT) {
-    pinMode(btRXPin, INPUT);
-    pinMode(btTXPin, OUTPUT);
-    btSerial.begin(115200);
-    btSerial.println("Hello! I am Sunflower!\n\nYou are connected over Bluetooth\n");
-    if (configDebug){btSerial.println("*** Debugging Enabled ***\n");}
-  }
 }
 
 
@@ -192,15 +178,6 @@ void loop() {
 
   }
 
-  // Report data over bluetooth if current time is correct
-  if (configBT) {
-    if ((millis() % (configBTInterval * 1000)) < configServoDelay) {
-      btSerial.print("Current Time:             "); btSerial.println(millis() / 1000);
-      btSerial.print("Ambient Temperature:      "); btSerial.println(calcTemp(sensorTempSignal));
-      btSerial.print("Maximum Irradiance:       "); btSerial.println(calcIrrad(sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal));
-      btSerial.print("Relative Sun Position:    "); btSerial.println("PLACEHOLDER");
-    }
-  }
 
   // Wait to ensure that the servo reaches its position
   delay(configServoDelay);
