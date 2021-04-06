@@ -61,7 +61,7 @@ const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // !0 # of ms between servo pos updates
 const bool configDebug = false;     // Turn debugging on or off
 const bool configBT = false;        // Turn bluetooth on or off
-const bool configBTInterval = 60;   // Set bluetooth update interval in seconds
+const bool configBTInterval = 10;   // Set bluetooth update interval in seconds
 
 
 // Declare global scope variables. These should not be modified before running
@@ -75,7 +75,7 @@ void setup() {
 
   // Open USB serial port
   Serial.begin(9600);
-  Serial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over USB\n");
+  Serial.println("Hello! I am Sunflower!\n\nYou are connected over USB\n");
   if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
 
   // Connect servo objects to their signal pins
@@ -88,8 +88,8 @@ void setup() {
   if (configBT) {
     pinMode(btRXPin, INPUT);
     pinMode(btTXPin, OUTPUT);
-    btSerial.begin(9600);
-    btSerial.println("\t\tHello! I am Sunflower!\n\n\t\tYou are connected over Bluetooth\n");
+    btSerial.begin(115200);
+    btSerial.println("Hello! I am Sunflower!\n\nYou are connected over Bluetooth\n");
     if (configDebug){btSerial.println("*** Debugging Enabled ***\n");}
   }
 }
