@@ -163,14 +163,14 @@ void loop() {
     if (sensorSouthSignal > sensorNorthSignal) {
       // Toggle EW inversion off when crossing over 90 degrees
       if (servoNS.read() == 90) {servoEWInvert = false;}
-      servoNS.write(servoNS.read() - configServoDist); // Angle to the South
+      servoNS.write(servoNS.read() + configServoDist); // Angle to the South
       if (configDebug) {Serial.println("South");}
     }
 
     else if (sensorNorthSignal > sensorSouthSignal) {
       // Toggle EW inversion on when crossing over 90 degrees
       if (servoNS.read() == 90) {servoEWInvert = true;}
-      servoNS.write(servoNS.read() + configServoDist); // Angle to the North
+      servoNS.write(servoNS.read() - configServoDist); // Angle to the North
       if (configDebug) {Serial.println("North");}
     }
 
