@@ -3,7 +3,7 @@
 /*##############################################################################
 
 Date
-    March 24, 2021
+    April 06, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -53,9 +53,9 @@ const int sensorSouthPin = 3;       // Pin number for South photoresistor
 const int sensorTempPin = 4;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
-const double configLightThreshold = 10.0; // Min light % difference for movement
+const double configLightThreshold = 15.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
-const int configServoDelay = 10;    // !0 # of ms between servo pos updates
+const int configServoDelay = 20;    // !0 # of ms between servo pos updates
 const bool configDebug = false;     // Turn debugging on or off
 
 
@@ -178,7 +178,6 @@ void loop() {
 
   }
 
-
   // Wait to ensure that the servo reaches its position
   delay(configServoDelay);
 
@@ -223,6 +222,5 @@ void servoInvert(bool& toggleInvert) {
 
   // Flip the NS axis according to original position
   servoNS.write(180 - servoNSOriginal);
-  delay(configServoDelay);
-
+  delay(configServoDelay * 100);
 }
