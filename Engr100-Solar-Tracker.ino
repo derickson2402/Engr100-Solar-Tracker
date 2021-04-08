@@ -3,7 +3,7 @@
 /*##############################################################################
 
 Date
-    April 06, 2021
+    April 08, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -54,6 +54,7 @@ const int servoEWPin = 11;          // Pin number for EW servo
 const double configLightThreshold = 15.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 20;    // # of ms between servo pos updates (!= 0)
+const int configServoDelayInvert = 10; // # of ms delay when inverting servos
 const bool configReport = true;     // Turn environment data reporting on or off
 const bool configReportDelay = 10;  // Set the delay in seconds between reports
 const bool configDebug = false;     // Turn debugging on or off
@@ -224,19 +225,60 @@ void reportEnvData(const int temp, const int north, const int south, const int e
 
 
 // Flip the servos and invert EW axis when boundary is hit
-void servoInvert(bool& toggleInvert) {
+void servoInvert(bool& toggleInvert, const int servoNSOriginal, const int servoEWOriginal) {
 
-  // Record current NS position and set to 90 degrees (neutral position)
-  int servoNSOriginal = servoNS.read();
-  servoNS.write(90);
-  delay(configServoDelay);
+  // Set NS servo to 90 degrees (neutral position)
+  if (servoNSOriginal > 90) {
+    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
+      servoNS.write(servoNS.read() - configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else if (servoNSOriginal < 90) {
+    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
+      servoNS.write(servoNS.read() + configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else {
+    delay(configServoDelayInvert);
+  }
 
-  // Flip the EW axis and set EW inversion
-  servoEW.write(180 - servoEW.read());
+  // Flip the EW axis
+  if (servoEWOriginal == 0) {
+    for (int i = 0; i < 180; ++i) {
+      servoEW.write(servoEW.read() + configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else if (servoEWOriginal == 180) {
+    for (int i = 180; i > 0; --i) {
+      servoEW.write(servoEW.read() - configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else {
+    Serial.println("Runtime error in servoInvert(): servoEW original position =! 180 or 0");
+  }
+
+  // Set inversion
   toggleInvert = !toggleInvert;
-  delay(configServoDelay);
 
-  // Flip the NS axis according to original position
-  servoNS.write(180 - servoNSOriginal);
-  delay(configServoDelay * 100);
+  // Set NS servo back to inverted original position
+  if (servoNSOriginal > 90) {
+    for (int i = 90; i > (180 - servoNSOriginal); --i) {
+      servoNS.write(servoNS.read() - configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else if (servoNSOriginal < 90) {
+    for (int i = 90; i < (180 - servoNSOriginal); ++i) {
+      servoNS.write(servoNS.read() + configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else {
+    delay(configServoDelayInvert);
+  }
+
 }
