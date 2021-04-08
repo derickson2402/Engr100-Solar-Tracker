@@ -51,10 +51,11 @@ const int sensorSouthPin = 3;       // Pin number for South photoresistor
 const int sensorTempPin = 4;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
-const double configLightThreshold = 15.0; // Min light % difference for movement
+const double configServoNSThreshold = 15.0; // Min light % difference for movement on NS servo
+const double configServoEWThreshold = 10.0; // Min light % difference for movement on EW servo
 const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 20;    // # of ms between servo pos updates (!= 0)
-const int configServoDelayInvert = 10; // # of ms delay when inverting servos
+const int configServoDelayInvert = 5; // # of ms delay when inverting servos
 const bool configReport = true;     // Turn environment data reporting on or off
 const bool configReportDelay = 10;  // Set the delay in seconds between reports
 const bool configDebug = false;     // Turn debugging on or off
@@ -106,7 +107,7 @@ void loop() {
   }
 
   // Compare percent difference in East West direction
-  if (sensorEWDiff > configLightThreshold) {
+  if (sensorEWDiff > configServoEWThreshold) {
 
     // Inverted axis
     if (servoEWInvert) {
@@ -171,7 +172,7 @@ void loop() {
   }
 
   // Compare percent difference in North South direction
-  if ( sensorNSDiff > configLightThreshold ) {
+  if ( sensorNSDiff > configServoNSThreshold ) {
 
     if (sensorSouthSignal > sensorNorthSignal) {
       // Toggle EW inversion off when crossing over 90 degrees
