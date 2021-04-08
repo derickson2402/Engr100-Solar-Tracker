@@ -35,12 +35,10 @@ Description
     raw inputs from both photoresistors on an axis are compared, and if the
     percent difference is higher than the configured threshold then the servo motor will move one step in the brighter direction.
 
-    Bluetooth Serial Output
-    When switched on, the program can send ambient environment data over
-    Bluetooth serial. The data includes ambient temperature, incident solar
-    irradiance, and relative sun position. This code is tested to work with a
-    HC-05 Serial Bluetooth Module v1.3, but uses a standart 9600 baud serial
-    connection and should work with any serial connection.
+    Environmental Data Reporting
+    When switched on, the program can report ambient environment data over
+    the serial port. The data includes ambient temperature, incident solar
+    irradiance, and relative sun position.
 
 ##############################################################################*/
 
