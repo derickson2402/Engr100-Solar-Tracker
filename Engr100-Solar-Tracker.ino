@@ -55,7 +55,9 @@ const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const double configLightThreshold = 15.0; // Min light % difference for movement
 const int configServoDist = 1;      // Servo position change in degrees
-const int configServoDelay = 20;    // !0 # of ms between servo pos updates
+const int configServoDelay = 20;    // # of ms between servo pos updates (!= 0)
+const bool configReport = true;     // Turn environment data reporting on or off
+const bool configReportDelay = 10;  // Set the delay in seconds between reports
 const bool configDebug = false;     // Turn debugging on or off
 
 
@@ -69,7 +71,7 @@ void setup() {
 
   // Open USB serial port
   Serial.begin(9600);
-  Serial.println("Hello! I am Sunflower!\n\nYou are connected over USB\n");
+  Serial.println("Hello! I am Sunflower!\n");
   if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
 
   // Connect servo objects to their signal pins
@@ -178,6 +180,13 @@ void loop() {
 
   }
 
+  // Check if it is time to send environment data
+  if (configReport) {
+    if ((millis() % (configReportDelay * 1000)) < configServoDelay) {
+      reportEnvData(sensorTempSignal, sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal);
+    }
+  }
+
   // Wait to ensure that the servo reaches its position
   delay(configServoDelay);
 
@@ -185,7 +194,7 @@ void loop() {
 
 
 // Calculate the irradiance (W*m^-2) from 4 photoresistor voltage signals
-int calcIrrad(const int &signalA, const int &signalB, const int &signalC, const int &signalD) {
+int calcIrrad(const int signalA, const int signalB, const int signalC, const int signalD) {
 
   // Average the input signal
   double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
@@ -204,6 +213,15 @@ int calcTemp(const int &signal) {
   double temp = (((double)signal * 0.004882813) - 0.5) * 100;
   return((int)(temp + 0.5));
 
+}
+
+
+// Print aggregated report of environmental data to serial
+void reportEnvData(const int temp, const int north, const int south, const int east, const int west) {
+  Serial.print("Current Time (s):            "); Serial.println(millis()/1000);
+  Serial.print("Ambient Temperature (C):     "); Serial.println(calcTemp(temp));
+  Serial.print("Maximum Irradiance (W/m^2):  "); Serial.println(calcIrrad(north, south, east, west));
+  Serial.print("Relative Sun Position:       "); Serial.println("PLACEHOLDER");
 }
 
 
