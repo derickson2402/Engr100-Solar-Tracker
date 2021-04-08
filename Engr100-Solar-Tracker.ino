@@ -113,7 +113,10 @@ void loop() {
       // If servo needs to turn to the West
       if (sensorWestSignal > sensorEastSignal) {
         // If servo at boundary, flip it
-        if (servoEW.read() >= 180) {servoInvert(servoEWInvert);}
+        if (servoEW.read() >= 180) {
+          servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
+          if (configDebug) {Serial.print("Inverting...\t");}
+        }
         // Not at boundary, so twist counter-clockwise to the West
         else {
           servoEW.write(servoEW.read() + configServoDist);
@@ -123,7 +126,10 @@ void loop() {
       // If servo needs to turn to the East
       else if (sensorEastSignal > sensorWestSignal) {
         // If servo at boundary, flip it
-        if (servoEW.read() <= 0) {servoInvert(servoEWInvert);}
+        if (servoEW.read() <= 0) {
+          servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
+          if (configDebug) {Serial.print("Inverting...\t");}
+        }
         // Not at boundary, so twist clockwise to the East
         else {
           servoEW.write(servoEW.read() - configServoDist);
@@ -137,7 +143,10 @@ void loop() {
       // If servo needs to turn to the West
       if (sensorWestSignal > sensorEastSignal) {
         // If servo at boundary, flip it
-        if (servoEW.read() <= 0) {servoInvert(servoEWInvert);}
+        if (servoEW.read() <= 0) {
+          servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
+          if (configDebug) {Serial.print("Inverting...\t");}
+        }
         // Not at boundary, so twist clockwise to the West
         else {
           servoEW.write(servoEW.read() - configServoDist);
@@ -147,7 +156,10 @@ void loop() {
       // If servo needs to turn to the East
       else if (sensorEastSignal > sensorWestSignal) {
         // If servo at boundary, flip it
-        if (servoEW.read() >= 180) {servoInvert(servoEWInvert);}
+        if (servoEW.read() >= 180) {
+          servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
+          if (configDebug) {Serial.print("Inverting...\t");}
+        }
         // Not at boundary, so twist counter-clockwise to the East
         else {
           servoEW.write(servoEW.read() + configServoDist);
