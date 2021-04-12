@@ -97,13 +97,13 @@ void loop() {
 
   // If debugging is enabled, print diagnostics
   if (configDebug) {
-    Serial.print(sensorNorthSignal); Serial.print("\t");
-    Serial.print(sensorSouthSignal); Serial.print("\t");
-    Serial.print(sensorNSDiff); Serial.print("\tNS\t");
-    Serial.print(sensorEastSignal); Serial.print("\t");
-    Serial.print(sensorWestSignal); Serial.print("\t");
-    Serial.print(sensorEWDiff); Serial.print("\tEW\t");
-    Serial.print(servoEWInvert); Serial.print("\tinvert\t");
+    Serial.print("North Signal: "); Serial.print(sensorNorthSignal);
+    Serial.print("\tSouth Signal: "); Serial.print(sensorSouthSignal);
+    Serial.print("\tNS Diff: "); Serial.println(sensorNSDiff);
+    Serial.print("East Signal: "); Serial.print(sensorEastSignal);
+    Serial.print("\tWest Signal: "); Serial.print(sensorWestSignal);
+    Serial.print("\tEW Diff: "); Serial.println(sensorEWDiff);
+    Serial.print("Inversion: "); Serial.println(servoEWInvert);
   }
 
   // Compare percent difference in East West direction
@@ -115,13 +115,13 @@ void loop() {
       if (sensorWestSignal > sensorEastSignal) {
         // If servo at boundary, flip it
         if (servoEW.read() >= 180) {
+          if (configDebug) {Serial.println("Inverting...");}
           servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
-          if (configDebug) {Serial.print("Inverting...\t");}
         }
         // Not at boundary, so twist counter-clockwise to the West
         else {
           servoEW.write(servoEW.read() + configServoDist);
-          if (configDebug) {Serial.print("West counter-clockwise\t");}
+          if (configDebug) {Serial.println("West counter-clockwise");}
         }
       }
       // If servo needs to turn to the East
@@ -129,7 +129,7 @@ void loop() {
         // If servo at boundary, flip it
         if (servoEW.read() <= 0) {
           servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
-          if (configDebug) {Serial.print("Inverting...\t");}
+          if (configDebug) {Serial.println("Inverting...");}
         }
         // Not at boundary, so twist clockwise to the East
         else {
@@ -146,12 +146,12 @@ void loop() {
         // If servo at boundary, flip it
         if (servoEW.read() <= 0) {
           servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
-          if (configDebug) {Serial.print("Inverting...\t");}
+          if (configDebug) {Serial.println("Inverting...");}
         }
         // Not at boundary, so twist clockwise to the West
         else {
           servoEW.write(servoEW.read() - configServoDist);
-          if (configDebug) {Serial.print("West clockwise\t");}
+          if (configDebug) {Serial.println("West clockwise");}
         }
       }
       // If servo needs to turn to the East
@@ -159,12 +159,12 @@ void loop() {
         // If servo at boundary, flip it
         if (servoEW.read() >= 180) {
           servoInvert(servoEWInvert, servoNS.read(), servoEW.read());
-          if (configDebug) {Serial.print("Inverting...\t");}
+          if (configDebug) {Serial.println("Inverting...");}
         }
         // Not at boundary, so twist counter-clockwise to the East
         else {
           servoEW.write(servoEW.read() + configServoDist);
-          if (configDebug) {Serial.print("East counter-clockwise\t");}
+          if (configDebug) {Serial.println("East counter-clockwise");}
         }
       }
     }
@@ -187,8 +187,6 @@ void loop() {
       servoNS.write(servoNS.read() - configServoDist); // Angle to the North
       if (configDebug) {Serial.println("North");}
     }
-
-    else {Serial.print("\n");}
 
   }
 
