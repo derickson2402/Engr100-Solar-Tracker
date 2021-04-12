@@ -57,7 +57,7 @@ const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 20;    // # of ms between servo pos updates (!= 0)
 const int configServoDelayInvert = 5; // # of ms delay when inverting servos
 const bool configReport = true;     // Turn environment data reporting on or off
-const bool configReportDelay = 10;  // Set the delay in seconds between reports
+unsigned long configReportDelay = 10;  // Set the delay in seconds between reports
 const bool configDebug = false;     // Turn debugging on or off
 
 
