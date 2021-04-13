@@ -1,9 +1,10 @@
 #include <Servo.h>
+#include <string.h>
 
 /*##############################################################################
 
 Date
-    April 08, 2021
+    April 13, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -193,7 +194,7 @@ void loop() {
   // Check if it is time to send environment data
   if (configReport) {
     if ((millis() % (configReportDelay * 1000)) < configServoDelay) {
-      reportEnvData(sensorTempSignal, sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal);
+      reportEnvData(sensorTempSignal, sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal, servoNS.read(), servoEW.read());
     }
   }
 
@@ -226,12 +227,33 @@ int calcTemp(const int &signal) {
 }
 
 
+// Calculate the position of the sun based on the servo motor positions, in the
+// form of angle above horizon and angle of rotation
+String calcSunPosition(int servoNSPos, int servoEWPos) {
+
+  // Set the position based on servo angles
+  int angleNS = servoNSPos;
+  int angleEW = servoEWPos;
+
+  // Adjust position if inverted
+  if (servoEWInvert) {int angleNS = 180 - servoNSPos;}
+  if (servoEWInvert) {int angleEW = 180 + servoEWPos;}
+
+  // Concatenate the string and exit
+  String positionSun = String(angleNS) + "degs up, " + String(angleEW) + "degs counter-clockwise";
+  return (positionSun);
+
+}
+
+
 // Print aggregated report of environmental data to serial
-void reportEnvData(const int temp, const int north, const int south, const int east, const int west) {
+void reportEnvData(const int temp, const int north, const int south, const int east, const int west, const int positionNS, const int positionEW) {
+
   Serial.print("Current Time (s):            "); Serial.println(millis()/1000);
   Serial.print("Ambient Temperature (C):     "); Serial.println(calcTemp(temp));
   Serial.print("Maximum Irradiance (W/m^2):  "); Serial.println(calcIrrad(north, south, east, west));
-  Serial.print("Relative Sun Position:       "); Serial.println("PLACEHOLDER");
+  Serial.print("Relative Sun Position:       "); Serial.println(calcSunPosition(positionNS, positionEW));
+
 }
 
 
