@@ -326,41 +326,9 @@ void servoInvert(bool& toggleInvert, const int servoNSOriginal, const int servoE
 // Reset the servos to neutral when light is not detected
 void resetServos(bool& toggleInvert) {
 
-  int servoNSOriginal = servoNS.read();
-  int servoEWOriginal = servoEW.read();
-  
-  // Set NS servo to 90 degrees (neutral position)
-  if (servoNSOriginal > 90) {
-    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
-      servoNS.write(servoNS.read() - configServoDist);
-      delay(configServoDelayInvert);
-    }
-  }
-  else if (servoNSOriginal < 90) {
-    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
-      servoNS.write(servoNS.read() + configServoDist);
-      delay(configServoDelayInvert);
-    }
-  }
-  else {
-    delay(configServoDelayInvert);
-  }
+  servoNS.write(90);
+  servoEW.write(90);
 
-  // Set EW servo to 90 degrees (neutral position)
-  if (servoEWOriginal > 90) {
-    for (int i = 0; i < (servoEWOriginal - 90); ++i) {
-      servoNS.write(servoNS.read() - configServoDist);
-      delay(configServoDelayInvert);
-    }
-  }
-  else if (servoEWOriginal < 90) {
-    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
-      servoNS.write(servoNS.read() + configServoDist);
-      delay(configServoDelayInvert);
-    }
-  }
-  else {
-    delay(configServoDelayInvert);
-  }
+  delay(90 * configServoDelay);
 
 }
