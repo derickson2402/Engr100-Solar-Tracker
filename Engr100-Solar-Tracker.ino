@@ -49,13 +49,13 @@ const int sensorWestPin = 0;        // Pin number for West photoresistor
 const int sensorEastPin = 1;        // Pin number for East photoresistor
 const int sensorNorthPin = 2;       // Pin number for North photoresistor
 const int sensorSouthPin = 3;       // Pin number for South photoresistor
-const int sensorTempPin = 4;        // Pin number for temperature sensor
+const int sensorTempPin = 5;        // Pin number for temperature sensor
 const int servoNSPin = 10;          // Pin number for NS servo
 const int servoEWPin = 11;          // Pin number for EW servo
 const double configServoNSThreshold = 15.0; // Min light % difference for movement on NS servo
 const double configServoEWThreshold = 10.0; // Min light % difference for movement on EW servo
 const int configServoDist = 1;      // Servo position change in degrees
-const int configServoDelay = 20;    // # of ms between servo pos updates (!= 0)
+const int configServoDelay = 10;    // # of ms between servo pos updates (!= 0)
 const int configServoDelayInvert = 5; // # of ms delay when inverting servos
 const bool configReport = true;     // Turn environment data reporting on or off
 unsigned long configReportDelay = 10;  // Set the delay in seconds between reports
@@ -198,6 +198,13 @@ void loop() {
     }
   }
 
+  // Timer for checking if reset needs to occur
+  if ((millis() % (5 * 1000)) < configServoDelay) {
+    if (50 > calcIrrad(sensorNorthSignal, sensorSouthSignal, sensorEastSignal, sensorWestSignal)) {
+      resetServos(servoEWInvert);
+    }
+  }
+
   // Wait to ensure that the servo reaches its position
   delay(configServoDelay);
 
@@ -211,7 +218,7 @@ int calcIrrad(const int signalA, const int signalB, const int signalC, const int
   double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
 
   // Calculate the irradiance
-  double irrad = 125.0 * ((double)signalAvg * (5.0/1023.0));
+  double irrad = -59.1 * ((double)signalAvg * (5.0/1023.0)) + 275;
   return((int)(irrad + 0.5));
 
 }
@@ -306,6 +313,48 @@ void servoInvert(bool& toggleInvert, const int servoNSOriginal, const int servoE
   }
   else if (servoNSOriginal < 90) {
     for (int i = 90; i < (180 - servoNSOriginal); ++i) {
+      servoNS.write(servoNS.read() + configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else {
+    delay(configServoDelayInvert);
+  }
+
+}
+
+// Reset the servos to neutral when light is not detected
+void resetServos(bool& toggleInvert) {
+
+  int servoNSOriginal = servoNS.read();
+  int servoEWOriginal = servoEW.read();
+  
+  // Set NS servo to 90 degrees (neutral position)
+  if (servoNSOriginal > 90) {
+    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
+      servoNS.write(servoNS.read() - configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else if (servoNSOriginal < 90) {
+    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
+      servoNS.write(servoNS.read() + configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else {
+    delay(configServoDelayInvert);
+  }
+
+  // Set EW servo to 90 degrees (neutral position)
+  if (servoEWOriginal > 90) {
+    for (int i = 0; i < (servoEWOriginal - 90); ++i) {
+      servoNS.write(servoNS.read() - configServoDist);
+      delay(configServoDelayInvert);
+    }
+  }
+  else if (servoEWOriginal < 90) {
+    for (int i = 0; i < (servoNSOriginal - 90); ++i) {
       servoNS.write(servoNS.read() + configServoDist);
       delay(configServoDelayInvert);
     }
