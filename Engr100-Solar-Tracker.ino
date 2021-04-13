@@ -210,7 +210,7 @@ int calcIrrad(const int signalA, const int signalB, const int signalC, const int
   double signalAvg = (double)(signalA + signalB + signalC + signalD) / 4.0;
 
   // Calculate the irradiance
-  double irrad = (655 * pow(signalAvg, 2.0)) - (4735 * signalAvg) + 8670;
+  double irrad = 125.0 * ((double)signalAvg * (5.0/1023.0));
   return((int)(irrad + 0.5));
 
 }
