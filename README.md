@@ -19,7 +19,7 @@ The servo position is updated using a simple error correction structure. The raw
 
 ## Environmental Data Reporting
 
-When switched on, the program can report ambient environment data over the serial port. The data includes ambient temperature, incident solar irradiance, and relative sun position.
+When switched on, the program can report ambient environment data over the serial port. The data includes ambient temperature, incident solar irradiance, and relative sun position. This data is sent as a serial data stream at 115200 baud and will send over both USB serial and bluetooth serial.
 
 ## Set Up VS Code for Arduino
 

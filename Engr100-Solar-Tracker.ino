@@ -4,7 +4,7 @@
 /*##############################################################################
 
 Date
-    April 13, 2021
+    April 15, 2021
 
 Written By
     Daniel Erickson   (danerick)
@@ -39,7 +39,9 @@ Description
     Environmental Data Reporting
     When switched on, the program can report ambient environment data over
     the serial port. The data includes ambient temperature, incident solar
-    irradiance, and relative sun position.
+    irradiance, and relative sun position. This data is sent as a serial data
+    stream at 115200 baud and will send over both USB serial and bluetooth
+    serial.
 
 ##############################################################################*/
 
@@ -58,7 +60,7 @@ const int configServoDist = 1;      // Servo position change in degrees
 const int configServoDelay = 10;    // # of ms between servo pos updates (!= 0)
 const int configServoDelayInvert = 5; // # of ms delay when inverting servos
 const bool configReport = true;     // Turn environment data reporting on or off
-unsigned long configReportDelay = 10;  // Set the delay in seconds between reports
+unsigned long configReportDelay = 5;  // Set the delay in seconds between reports
 const bool configDebug = false;     // Turn debugging on or off
 
 
@@ -71,7 +73,7 @@ bool servoEWInvert = false;
 void setup() {
 
   // Open USB serial port
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Hello! I am Sunflower!\n");
   if (configDebug){Serial.println("*** Debugging Enabled ***\n");}
 
@@ -247,7 +249,7 @@ String calcSunPosition(int servoNSPos, int servoEWPos) {
   if (servoEWInvert) {int angleEW = 180 + servoEWPos;}
 
   // Concatenate the string and exit
-  String positionSun = String(angleNS) + "degs up, " + String(angleEW) + "degs counter-clockwise";
+  String positionSun = String(angleNS) + " degs up, " + String(angleEW) + " degs counter-clockwise";
   return (positionSun);
 
 }
